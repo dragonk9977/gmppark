@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>개화역 vs 김포공항 주차 비교 계산기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #E9ECF2;
+    --surface: #FFFFFF;
+    --ink: #1B2230;
+    --muted: #5B6577;
+    --line: #D3D8E2;
+    --accent: #2B4C9B;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E3E9F7;
+    --ok: #1F7A5A;
+    --ok-soft: #DDF1E8;
+    --warn: #9A4A06;
+    --warn-soft: #FBEBD6;
+    --bad: #A3262A;
+    --bad-soft: #FBE1E1;
+    --led: #FFC83D;
+    --panel: #161B26;
+    --panel-cell: #212839;
+    --panel-win: #2B2A17;
+    --panel-ink: #E9ECF3;
+    --panel-muted: #8E98AB;
+    color-scheme: light;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10131A;
+      --surface: #1A1F2A;
+      --ink: #E7EAF0;
+      --muted: #9AA3B5;
+      --line: #2B3140;
+      --accent: #8FB0FF;
+      --accent-ink: #10131A;
+      --accent-soft: #23304F;
+      --ok: #5FD0A2;
+      --ok-soft: #173A2E;
+      --warn: #F2B26B;
+      --warn-soft: #3B2A14;
+      --bad: #FF9A9D;
+      --bad-soft: #3F1E20;
+      --panel: #0A0D13;
+      --panel-cell: #161B26;
+      --panel-win: #262512;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10131A;
+    --surface: #1A1F2A;
+    --ink: #E7EAF0;
+    --muted: #9AA3B5;
+    --line: #2B3140;
+    --accent: #8FB0FF;
+    --accent-ink: #10131A;
+    --accent-soft: #23304F;
+    --ok: #5FD0A2;
+    --ok-soft: #173A2E;
+    --warn: #F2B26B;
+    --warn-soft: #3B2A14;
+    --bad: #FF9A9D;
+    --bad-soft: #3F1E20;
+    --panel: #0A0D13;
+    --panel-cell: #161B26;
+    --panel-win: #262512;
+    color-scheme: dark;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+    line-height: 1.55;
+    -webkit-text-size-adjust: 100%;
+    padding-bottom: 130px;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 20px 16px 8px; }
+
+  .sign { display: flex; align-items: center; gap: 14px; }
+  .sign .p {
+    flex: none; width: 56px; height: 56px; border-radius: 10px;
+    background: var(--accent); color: var(--accent-ink);
+    display: grid; place-items: center;
+    font-weight: 900; font-size: 36px; line-height: 1;
+  }
+  h1 { font-size: 21px; line-height: 1.25; margin: 0; font-weight: 900; letter-spacing: -0.01em; }
+  .sub { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
+
+  .display { margin-top: 16px; padding: 16px 14px 16px; background: var(--panel); color: var(--panel-ink); border-radius: 16px; }
+  .d-head { font-size: 13.5px; color: var(--panel-muted); margin: 0 2px 10px; }
+  .cells { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cell { background: var(--panel-cell); border-radius: 12px; padding: 12px; min-width: 0; border: 2px solid transparent; }
+  .cell.win { background: var(--panel-win); border-color: var(--led); }
+  .c-title { font-size: 12.5px; color: var(--panel-muted); line-height: 1.35; }
+  .c-amt { margin-top: 4px; font-size: clamp(25px, 8vw, 34px); font-weight: 900; line-height: 1.15; color: var(--panel-ink); font-variant-numeric: tabular-nums; white-space: nowrap; letter-spacing: -0.02em; }
+  .cell.win .c-amt { color: var(--led); }
+  .c-amt small { font-size: 0.45em; font-weight: 700; margin-left: 2px; }
+  .c-sub { margin-top: 6px; font-size: 12.5px; color: var(--panel-muted); line-height: 1.45; }
+  .c-tag { margin-top: 6px; font-size: 12.5px; font-weight: 700; line-height: 1.4; }
+  .verdict { margin: 14px 2px 0; font-size: 16px; font-weight: 700; line-height: 1.45; }
+  .verdict b { color: var(--led); font-variant-numeric: tabular-nums; }
+  .d-hint { margin: 8px 2px 0; font-size: 13px; color: var(--led); line-height: 1.5; }
+  .d-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin: 14px 2px 0; padding-top: 14px; border-top: 1px solid #2A3142; }
+  .d-grid dt { font-size: 12.5px; color: var(--panel-muted); }
+  .d-grid dd { margin: 0; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .card { margin-top: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  h2 { font-size: 16px; margin: 0 0 12px; font-weight: 700; }
+  .lead { margin: -4px 0 12px; font-size: 13px; color: var(--muted); }
+  .times { display: grid; gap: 12px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field label { display: block; font-size: 13.5px; color: var(--muted); margin-bottom: 4px; }
+  input[type="datetime-local"], input[type="number"], input[type="text"], select {
+    width: 100%; min-height: 48px; padding: 10px 12px;
+    font: inherit; font-size: 16px; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+  }
+  input[type="datetime-local"]:focus-visible, input[type="number"]:focus-visible, input[type="text"]:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+  .dur { margin: 12px 0 0; font-size: 14px; color: var(--muted); }
+  .dur b { color: var(--ink); }
+  .err { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-size: 14px; font-weight: 500; }
+  .fixnote { margin: 8px 0 0; font-size: 13px; color: var(--warn); }
+  .rulebox { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--accent-soft); color: var(--ink); font-size: 13.5px; line-height: 1.5; }
+
+  .opt { display: flex; align-items: flex-start; gap: 12px; min-height: 48px; padding: 11px 12px; margin: 0 0 8px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; background: var(--surface); }
+  .opt:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+  .opt:has(input:disabled) { opacity: 0.5; cursor: not-allowed; }
+  .opt input { flex: none; width: 22px; height: 22px; margin: 1px 0 0; accent-color: var(--accent); }
+  .opt input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .opt .t { font-size: 15px; font-weight: 500; line-height: 1.4; }
+  .opt .d { display: block; font-size: 12.5px; color: var(--muted); font-weight: 400; margin-top: 1px; }
+  .opt.sub { margin-left: 22px; }
+  .last { margin-bottom: 0; }
+  .trow { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .trow label { flex: none; width: 36px; font-size: 14px; color: var(--muted); }
+  .trow input { flex: 1; min-width: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .mycar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; background: var(--surface); font-size: 14.5px; font-weight: 500; }
+  .chip input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+  .chip:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+  .chip:has(input:disabled) { opacity: 0.5; cursor: not-allowed; }
+  .chip:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .seg label { position: relative; display: block; min-width: 54px; min-height: 44px; padding: 10px 12px; text-align: center; font-size: 14.5px; font-weight: 500; cursor: pointer; background: var(--surface); }
+  .seg label + label { border-left: 1px solid var(--line); }
+  .seg input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+  .seg label:has(input:checked) { background: var(--accent); color: var(--accent-ink); }
+  .seg label:has(input:focus-visible) { outline: 3px solid var(--accent); outline-offset: -3px; }
+  .seg label:has(input:disabled) { opacity: 0.5; cursor: not-allowed; }
+  .cnt { margin-left: 8px; font-size: 12.5px; color: var(--muted); font-weight: 500; }
+  .scope { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 11.5px; font-weight: 700; vertical-align: 1px; white-space: nowrap; }
+  .scope.one { background: var(--warn-soft); color: var(--warn); }
+  .opt:has(input:checked) .scope { background: var(--surface); }
+  details.inner { margin-top: 10px; }
+  details.inner > summary { cursor: pointer; font-size: 14.5px; font-weight: 700; padding: 8px 0; min-height: 44px; display: flex; align-items: center; }
+  details.inner > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+  .prow { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .prow .lab { font-size: 15px; font-weight: 500; line-height: 1.35; }
+  .prow .lab small { display: block; font-size: 12.5px; color: var(--muted); font-weight: 400; }
+  .stepper { display: flex; align-items: center; gap: 4px; flex: none; }
+  .st-btn { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 22px; font-weight: 700; line-height: 1; cursor: pointer; }
+  .st-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .stepper output { min-width: 34px; text-align: center; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sumline { margin: 12px 0 0; font-size: 14px; color: var(--muted); }
+  .sumline b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  .status { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 500; line-height: 1.5; }
+  .status.ok { background: var(--ok-soft); color: var(--ok); }
+  .status.warn { background: var(--warn-soft); color: var(--warn); }
+  .status.bad { background: var(--bad-soft); color: var(--bad); }
+  .btn { margin-top: 12px; width: 100%; min-height: 48px; border: 0; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .tbl-wrap { overflow-x: auto; margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 8px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 13px; color: var(--muted); font-weight: 500; }
+  td:last-child, th:last-child { text-align: right; white-space: nowrap; }
+  .tbl3 td:nth-child(2), .tbl3 th:nth-child(2) { text-align: right; white-space: nowrap; }
+  tr.total td { font-weight: 900; border-bottom: 0; font-size: 15px; }
+  tr.key td { font-weight: 700; }
+  .cap { color: var(--warn); font-size: 12.5px; }
+  .mini { display: block; font-size: 12.5px; color: var(--muted); font-weight: 400; }
+
+  .cmp { list-style: none; margin: 0; padding: 0; }
+  .cmp li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+  .cmp li:last-child { border-bottom: 0; }
+  .cmp .n small { display: block; font-size: 12.5px; color: var(--muted); }
+  .cmp .v { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cmp li.best .n, .cmp li.best .v { color: var(--ok); font-weight: 700; }
+  .badge { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: var(--ok-soft); color: var(--ok); font-size: 12px; font-weight: 700; vertical-align: 1px; }
+  h3 { font-size: 14px; margin: 18px 0 4px; font-weight: 700; }
+  h3:first-of-type { margin-top: 12px; }
+  details.card > summary { cursor: pointer; font-size: 16px; font-weight: 700; min-height: 28px; }
+  details.card > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+  .note { margin: 18px 2px 0; font-size: 12.5px; color: var(--muted); line-height: 1.65; }
+  .note p { margin: 0 0 8px; }
+
+  .fixed { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--panel); color: var(--panel-ink); padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid #2A3142; }
+  .fixed .in { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .fx .l { display: block; font-size: 12px; color: var(--panel-muted); }
+  .fx .v { display: block; font-size: 24px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .fx.win .v { color: var(--led); }
+  .fx-note { max-width: 560px; margin: 2px auto 0; font-size: 12.5px; color: var(--panel-muted); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <div class="sign">
+      <div class="p" aria-hidden="true">P</div>
+      <div>
+        <h1>개화역 vs 김포공항 주차 비교</h1>
+        <p class="sub">개화역 주차에 지하철을 타는 경우와 공항에 바로 주차하는 경우</p>
+      </div>
+    </div>
+  </header>
+
+  <section class="display" aria-live="polite">
+    <p class="d-head">총 비용 비교</p>
+    <div class="cells">
+      <div class="cell" id="cellG">
+        <div class="c-title">개화역 주차와 지하철</div>
+        <div class="c-amt"><span id="gAmt">0</span><small>원</small></div>
+        <div class="c-sub" id="gSub"></div>
+        <div class="c-tag" id="gTag"></div>
+      </div>
+      <div class="cell" id="cellA">
+        <div class="c-title">김포공항 직접 주차</div>
+        <div class="c-amt"><span id="aAmt">0</span><small>원</small></div>
+        <div class="c-sub" id="aSub"></div>
+        <div class="c-tag" id="aTag"></div>
+      </div>
+    </div>
+    <div class="verdict" id="verdict"></div>
+    <div class="d-hint" id="hint" hidden></div>
+    <div class="d-hint" id="hipass" hidden></div>
+    <dl class="d-grid">
+      <div><dt>총 주차시간</dt><dd id="gTotal">-</dd></div>
+      <div><dt>지하철 이용</dt><dd id="gWho">-</dd></div>
+      <div><dt>개화역 정상 요금</dt><dd id="gGross">-</dd></div>
+      <div><dt>김포공항 정상 요금</dt><dd id="aGross">-</dd></div>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>조건</h2>
+    <div class="trow"><label for="tin">입차</label><input type="datetime-local" id="tin"></div>
+    <div class="trow"><label for="tout">출차</label><input type="datetime-local" id="tout"></div>
+    <p class="fixnote" id="fixNote" hidden>출차 시간은 입차 시간보다 뒤여야 해서 입차 시간 뒤로 맞췄어요.</p>
+    <div id="err" class="err" hidden></div>
+    <p class="dur" id="dur"></p>
+
+    <div class="prow">
+      <div class="lab">성인<small>지하철 1,550원</small></div>
+      <div class="stepper"><button type="button" class="st-btn" data-t="nAdult" data-d="-1" aria-label="성인 줄이기">−</button><output id="nAdult" aria-live="polite">1</output><button type="button" class="st-btn" data-t="nAdult" data-d="1" aria-label="성인 늘리기">+</button></div>
+    </div>
+    <div class="prow">
+      <div class="lab">청소년<small>900원, 만 13~18세</small></div>
+      <div class="stepper"><button type="button" class="st-btn" data-t="nTeen" data-d="-1" aria-label="청소년 줄이기">−</button><output id="nTeen" aria-live="polite">0</output><button type="button" class="st-btn" data-t="nTeen" data-d="1" aria-label="청소년 늘리기">+</button></div>
+    </div>
+    <div class="prow" style="border-bottom:0">
+      <div class="lab">어린이<small>550원, 만 6~12세</small></div>
+      <div class="stepper"><button type="button" class="st-btn" data-t="nChild" data-d="-1" aria-label="어린이 줄이기">−</button><output id="nChild" aria-live="polite">0</output><button type="button" class="st-btn" data-t="nChild" data-d="1" aria-label="어린이 늘리기">+</button></div>
+    </div>
+    <p class="sumline" id="subLine"></p>
+
+    <div class="chips">
+      <label class="chip"><input type="checkbox" id="round" checked><span>왕복</span></label>
+      <label class="chip"><input type="checkbox" id="transit" checked><span>교통카드 환승</span></label>
+      <label class="chip"><input type="checkbox" id="cap" checked><span>개화역 1일 상한</span></label>
+    </div>
+    <div class="mycar">
+      <label class="chip"><input type="checkbox" id="low" checked><span>저공해</span></label>
+      <div class="seg" role="radiogroup" aria-label="저공해 종별">
+        <label><input type="radio" name="lowtype" id="lt1" value="1" checked><span>1종</span></label>
+        <label><input type="radio" name="lowtype" id="lt2" value="2"><span>2종</span></label>
+        <label><input type="radio" name="lowtype" id="lt3" value="3"><span>3종</span></label>
+      </div>
+      <label class="chip"><input type="checkbox" id="diesel" disabled><span>경유</span></label>
+    </div>
+    <p class="lead" style="margin:10px 0 0">환승은 교통카드로 지하철을 타고 하차 때도 태그해야 해요. 저공해 종별은 공항 할인율(1·2종 50%, 3종 20%)에 쓰여요. 개화역 상한은 24시간 구간마다 20,800원까지만 부과해요. 경유차는 저공해 감면에서 제외돼요.</p>
+
+    <details class="inner">
+      <summary>다른 차량·감면 대상 더 보기<span class="cnt" id="extraCount"></span></summary>
+      <label class="opt">
+        <input type="checkbox" id="kei">
+        <span class="t">경차<span class="scope">개화역 · 공항</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="ev">
+        <span class="t">전기차 충전하며 이용<span class="scope one">개화역만</span><span class="d">1시간 무료 후 50% 할인</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="disabled">
+        <span class="t">장애인 등록차량<span class="scope">개화역 · 공항</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="sang">
+        <span class="t">국가유공상이자<span class="scope">개화역 · 공항</span><span class="d">공항은 상이등급 판정을 받은 국가유공자 등록차량만 해당해요</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="agent">
+        <span class="t">고엽제후유(의)증환자<span class="scope">개화역 · 공항</span><span class="d">공항은 장애등급 판정을 받은 경우만 해당해요</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="may18">
+        <span class="t">5.18민주유공자<span class="scope">개화역 · 공항</span><span class="d">개화역은 1시간 무료 후 50%, 공항은 장애등급 판정을 받은 경우 50%</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="multi">
+        <span class="t">다자녀 가정<span class="scope">개화역 · 공항</span><span class="d">개화역은 다둥이행복카드 소지자, 공항은 18세 미만 2자녀 이상 가정</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="indep">
+        <span class="t">독립유공자, 의상자<span class="scope one">개화역만</span><span class="d">3시간 무료 후 80% 할인</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="single">
+        <span class="t">한부모가족 복지급여 지원대상자<span class="scope one">개화역만</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="family">
+        <span class="t">독립유공자 유족 중 선순위자<span class="scope one">개화역만</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="bohun">
+        <span class="t">보훈보상대상자<span class="scope one">개화역만</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="preg">
+        <span class="t">서울시 임산부 탑승 차량<span class="scope one">개화역만</span><span class="d">임산부 앱카드 등 증빙 제시</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="cham">
+        <span class="t">참전유공자, 병역명문가 예우대상자<span class="scope one">개화역만</span><span class="d">20% 할인</span></span>
+      </label>
+      <label class="opt last">
+        <input type="checkbox" id="taxfree">
+        <span class="t">서울시 유공납세자, 국세청 모범납세자<span class="scope one">개화역만</span><span class="d">무료주차 스티커 부착 차량, 전액 면제</span></span>
+      </label>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>비행기 시간에 맞춘 입차 마감</h2>
+    <p class="lead">김포공항 국내선 출발편 기준이에요. 편명은 항공사별 수속·탑승 규정을 적용하는 데 쓰고, 출발 시각은 예약 내역을 보고 직접 입력해 주세요.</p>
+    <div class="times">
+      <div class="grid2">
+        <div class="field">
+          <label for="fno">편명</label>
+          <input type="text" id="fno" placeholder="예: KE1187" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="fdep">출발 일시</label>
+          <input type="datetime-local" id="fdep">
+        </div>
+      </div>
+      <p class="rulebox" id="ruleTag" hidden></p>
+      <label class="opt last">
+        <input type="checkbox" id="bag">
+        <span class="t">위탁수하물이 있어요<span class="d">카운터 수속 시간이 더해지고 위탁 마감 시각을 지켜야 해요</span></span>
+      </label>
+      <details class="inner">
+        <summary>세부 시간 조정</summary>
+        <p class="lead" style="margin-top:0">모두 추정값이에요. 직접 걸어본 시간이나 평소 대기 시간으로 바꿔 쓰세요.</p>
+        <div class="grid2">
+          <div class="field"><label for="fsec">보안검색 대기·통과(분)</label><input type="number" id="fsec" inputmode="numeric" min="0" max="90" value="20"></div>
+          <div class="field"><label for="fbag">위탁 수속 소요(분)</label><input type="number" id="fbag" inputmode="numeric" min="0" max="90" value="15"></div>
+          <div class="field"><label for="fgate">보안 후 탑승구 이동(분)</label><input type="number" id="fgate" inputmode="numeric" min="0" max="30" value="5"></div>
+          <div class="field"><label for="fwalk">김포공항역에서 청사까지 도보(분)</label><input type="number" id="fwalk" inputmode="numeric" min="0" max="60" value="10"></div>
+          <div class="field"><label for="fride">개화 → 김포공항 열차(분)</label><input type="number" id="fride" inputmode="numeric" min="0" max="30" value="5"></div>
+          <div class="field"><label for="fbuf">승강장 대기 여유(분)</label><input type="number" id="fbuf" inputmode="numeric" min="0" max="30" value="3"></div>
+          <div class="field"><label for="fpwalk">주차장에서 승강장까지 도보(분)</label><input type="number" id="fpwalk" inputmode="numeric" min="0" max="30" value="5"></div>
+          <div class="field"><label for="fkc">위탁 마감(출발 몇 분 전)</label><input type="number" id="fkc" inputmode="numeric" min="0" max="90" value="30"></div>
+          <div class="field"><label for="fec">출발장 입장 마감(분 전)</label><input type="number" id="fec" inputmode="numeric" min="0" max="90" value="30"></div>
+          <div class="field"><label for="fbs">탑승 시작(분 전)</label><input type="number" id="fbs" inputmode="numeric" min="0" max="90" value="20"></div>
+          <div class="field"><label for="fbc">탑승 마감(분 전)</label><input type="number" id="fbc" inputmode="numeric" min="0" max="60" value="10"></div>
+        </div>
+      </details>
+    </div>
+    <div id="schedBox">
+      <div class="tbl-wrap">
+        <table class="tbl3">
+          <thead><tr><th>단계</th><th>권장</th><th>마감 한계</th></tr></thead>
+          <tbody id="schedRows"></tbody>
+        </table>
+      </div>
+      <div id="schedStatus" class="status ok" hidden></div>
+      <div id="trainWarn" class="status warn" hidden></div>
+      <button type="button" class="btn" id="applyBtn">입차 시간을 권장 시각으로 맞추기</button>
+    </div>
+  </section>
+
+  <details class="card">
+    <summary>개화역 계산 내역</summary>
+    <h3>할인 비교</h3>
+    <ul class="cmp" id="cmpG"></ul>
+    <h3>적용한 계산</h3>
+    <div class="tbl-wrap"><table><tbody id="rowsG"></tbody></table></div>
+  </details>
+
+  <details class="card">
+    <summary>김포공항 계산 내역</summary>
+    <h3>할인 비교</h3>
+    <ul class="cmp" id="cmpA"></ul>
+    <h3>적용한 계산</h3>
+    <div class="tbl-wrap"><table><tbody id="rowsA"></tbody></table></div>
+  </details>
+
+  <details class="card">
+    <summary>계산 기준·유의사항</summary>
+    <div class="note" style="margin:10px 0 0">
+      <p><b>요금 기준</b> 개화역은 서울시설공단 안내문, 공항은 국내선 소형 요금표예요(국제선도 같아요). 공항은 24시간 구간 시작일의 요일로 계산하고, 상한은 월~목 20,000원, 금·토·일·공휴일 30,000원이에요. 공휴일은 2026~2027년 월력요항 기준이고 임시공휴일은 빠져 있어요.</p>
+      <p><b>감면</b> 여러 개가 해당하면 가장 유리한 하나만 적용해요. 증빙서류가 필요하고, 공항은 출차 후 30일 안에 사후할인을 신청할 수 있어요. 공항은 5만원 이상이면 하이패스를 못 쓰고, 할인 후 5만원 미만이면 쓸 수 있어요.</p>
+      <p><b>시간 계산</b> 열차는 알려주신 개화역 시간표 기준이에요(평일은 11/16부터 변경 시간표). 항공사 규정은 대한항공·아시아나·제주항공·티웨이만 반영했고, 보안검색·도보·열차 시간은 추정값이에요.</p>
+      <p><b>지하철</b> 하차할 때 교통카드를 태그하지 않으면 다음 승차 때 기본운임이 더 나가요. 어린이·청소년 요금은 해당 연령으로 등록한 카드만 적용돼요.</p>
+      <p>실제 정산은 다를 수 있어요. 문의는 개화역 02-2290-6449, 공항은 주차장 안내처로 하세요.</p>
+    </div>
+  </details>
+</main>
+
+<div class="fixed">
+  <div class="in">
+    <div class="fx" id="fxG"><span class="l">개화역 + 지하철</span><span class="v" id="fxGv">0원</span></div>
+    <div class="fx" id="fxA"><span class="l">김포공항 주차</span><span class="v" id="fxAv">0원</span></div>
+  </div>
+  <div class="fx-note" id="fxNote"></div>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var won = function (n) { return n.toLocaleString("ko-KR"); };
+  var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+  var DOW = ["일", "월", "화", "수", "목", "금", "토"];
+
+  var RATE = 290, UNIT = 5, DAYCAP = 20800, DAY = 1440;
+  var FARE = { adult: 1550, teen: 900, child: 550 };
+
+  var HOL = {};
+  [
+    "2026-01-01","2026-02-16","2026-02-17","2026-02-18","2026-03-01","2026-03-02","2026-05-01","2026-05-05",
+    "2026-05-24","2026-05-25","2026-06-03","2026-06-06","2026-07-17","2026-08-15","2026-08-17",
+    "2026-09-24","2026-09-25","2026-09-26","2026-10-03","2026-10-05","2026-10-09","2026-12-25",
+    "2027-01-01","2027-02-06","2027-02-07","2027-02-08","2027-02-09","2027-03-01","2027-05-01","2027-05-03",
+    "2027-05-05","2027-05-13","2027-06-06","2027-07-17","2027-07-19","2027-08-15","2027-08-16",
+    "2027-09-14","2027-09-15","2027-09-16","2027-10-03","2027-10-04","2027-10-09","2027-10-11",
+    "2027-12-25","2027-12-27"
+  ].forEach(function (k) { HOL[k] = 1; });
+
+  /* 개화역 출발 열차 시간표 (김포공항 방면, 사용자 제공) */
+  function parseTT(s) {
+    var out = [], prev = -1;
+    s.trim().split(/\s+/).forEach(function (t) {
+      var p = t.split(":"), m = parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
+      if (m < prev) m += 1440;
+      prev = m;
+      out.push(m);
+    });
+    return out;
+  }
+  var TT_WK_OLD = parseTT("05:30 05:42 05:54 06:06 06:14 06:24 06:29 06:36 06:42 06:49 06:55 07:01 07:08 07:14 07:20 07:27 07:33 07:39 07:46 07:52 07:58 08:05 08:11 08:17 08:24 08:32 08:42 08:53 09:04 09:15 09:26 09:37 09:48 09:59 10:10 10:21 10:32 10:44 10:56 11:07 11:18 11:29 11:40 11:51 12:02 12:13 12:24 12:35 12:46 12:57 13:09 13:21 13:32 13:43 13:54 14:05 14:16 14:27 14:38 14:49 15:00 15:11 15:22 15:33 15:41 15:45 15:57 16:06 16:09 16:19 16:30 16:36 16:43 16:50 16:57 17:04 17:10 17:17 17:24 17:31 17:38 17:45 17:52 17:58 18:05 18:12 18:19 18:26 18:33 18:39 18:46 18:53 19:02 19:11 19:20 19:28 19:38 19:49 20:00 20:11 20:22 20:33 20:44 20:55 21:06 21:17 21:28 21:39 21:50 22:01 22:12 22:23 22:34 22:45 22:56 23:07 23:18 23:32 23:40 23:51 00:04 00:17 00:30 00:43");
+  var TT_HOL = parseTT("05:30 05:42 05:54 06:06 06:18 06:30 06:42 06:54 07:06 07:18 07:30 07:42 07:54 08:06 08:18 08:30 08:42 08:54 09:05 09:15 09:26 09:37 09:48 09:59 10:10 10:21 10:32 10:43 10:54 11:05 11:16 11:27 11:38 11:49 12:00 12:11 12:22 12:33 12:44 12:55 13:06 13:17 13:28 13:39 13:50 14:01 14:12 14:23 14:34 14:45 14:56 15:07 15:18 15:29 15:40 15:51 16:02 16:13 16:24 16:35 16:46 16:57 17:08 17:19 17:30 17:41 17:52 18:03 18:14 18:25 18:36 18:47 18:58 19:09 19:20 19:31 19:42 19:53 20:04 20:15 20:26 20:37 20:48 20:59 21:10 21:23 21:36 21:50 22:04 22:18 22:32 22:46 23:00 23:14 23:28 23:42");
+
+  var TT_WK_NEW = parseTT("05:30 05:43 05:56 06:09 06:22 06:35 06:48 07:00 07:07 07:13 07:19 07:25 07:31 07:37 07:43 07:49 07:55 08:01 08:07 08:13 08:19 08:27 08:35 08:43 08:59 09:09 09:20 09:31 09:42 09:53 10:04 10:15 10:26 10:37 10:48 10:59 11:10 11:21 11:32 11:43 11:54 12:05 12:16 12:27 12:38 12:49 13:00 13:11 13:22 13:33 13:44 13:55 14:06 14:17 14:28 14:39 14:50 15:01 15:08 15:12 15:24 15:33 15:36 15:46 15:57 16:03 16:10 16:17 16:24 16:31 16:37 16:44 16:51 16:58 17:05 17:12 17:19 17:25 17:32 17:39 17:46 17:53 18:00 18:06 18:13 18:20 18:29 18:38 18:47 18:55 19:05 19:16 19:27 19:38 19:49 20:00 20:11 20:22 20:33 20:44 20:55 21:06 21:17 21:28 21:39 21:50 22:01 22:12 22:23 22:34 22:45 22:56 23:07 23:18 23:32 23:40 23:51 00:04 00:16 00:30 00:43");
+  var NEW_FROM = new Date(2026, 10, 16).getTime();
+
+  /* 항공사 규정 (분 전 기준) */
+  var AIR = {
+    "KE": { name: "대한항공", kc: 30, ec: 30, bs: 20, bc: 10, ok: true },
+    "OZ": { name: "아시아나항공", kc: 30, ec: 20, bs: 25, bc: 10, ok: true },
+    "7C": { name: "제주항공", kc: 30, ec: 30, bs: 20, bc: 10, ok: true },
+    "TW": { name: "티웨이항공", kc: 30, ec: 30, bs: 20, bc: 10, ok: true },
+    "LJ": { name: "진에어", kc: 30, ec: 30, bs: 20, bc: 10, ok: false },
+    "BX": { name: "에어부산", kc: 30, ec: 30, bs: 20, bc: 10, ok: false },
+    "RS": { name: "에어서울", kc: 30, ec: 30, bs: 20, bc: 10, ok: false },
+    "ZE": { name: "이스타항공", kc: 30, ec: 30, bs: 20, bc: 10, ok: false }
+  };
+
+  function ymd(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function toInput(d) { return ymd(d) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function hm(d) { return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function md(d) { return (d.getMonth() + 1) + "/" + d.getDate() + "(" + DOW[d.getDay()] + ")"; }
+  function fmtDur(min) {
+    var d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = min % 60, p = [];
+    if (d) p.push(d + "일");
+    if (h) p.push(h + "시간");
+    if (m) p.push(m + "분");
+    return p.length ? p.join(" ") : "0분";
+  }
+  function num(id, def) {
+    var v = parseInt($(id).value, 10);
+    return (isNaN(v) || v < 0) ? def : v;
+  }
+  function cnt(id) { return parseInt($(id).textContent, 10) || 0; }
+
+  /* 개화역 주차 */
+  function gross(chargeMin, useCap) {
+    var left = chargeMin, total = 0, blocks = [];
+    while (left > 0) {
+      var m = Math.min(left, DAY);
+      var fee = Math.ceil(m / UNIT) * RATE, capped = false;
+      if (useCap && fee > DAYCAP) { fee = DAYCAP; capped = true; }
+      blocks.push({ m: m, fee: fee, capped: capped });
+      total += fee;
+      left -= m;
+    }
+    return { total: total, blocks: blocks };
+  }
+  function evalG(totalMin, free, pct, useCap) {
+    var charge = Math.max(0, totalMin - free);
+    var g = gross(charge, useCap);
+    var fee = Math.floor(g.total * (100 - pct) / 100 / 10) * 10;
+    return { charge: charge, g: g, fee: fee, disc: g.total - fee };
+  }
+  function describe(c) {
+    if (c.pct === 100) return "전액 면제";
+    if (c.pct === 0) return "할인 없음";
+    return c.free > 0 ? (c.free / 60) + "시간 무료 후 " + c.pct + "% 할인" : c.pct + "% 할인";
+  }
+
+  /* 김포공항 주차 */
+  function dayType(d) {
+    var g = d.getDay(), hol = !!HOL[ymd(d)], high = (g === 0 || g === 5 || g === 6 || hol);
+    return { cap: high ? 30000 : 20000, label: hol ? "공휴일" : DOW[g] + "요일", high: high };
+  }
+  function evalA(tin, totalMin, pct) {
+    var blocks = [], left = totalMin, i = 0, total = 0;
+    while (left > 0) {
+      var m = Math.min(left, DAY);
+      var start = new Date(tin.getTime() + i * DAY * 60000);
+      var t = dayType(start);
+      var raw = 1000 + Math.ceil(Math.max(0, m - 30) / 15) * 500;
+      var fee = Math.min(raw, t.cap);
+      blocks.push({ m: m, start: start, t: t, raw: raw, fee: fee, capped: raw > t.cap });
+      total += fee;
+      left -= m;
+      i++;
+    }
+    var fee2 = Math.floor(total * (100 - pct) / 100 / 10) * 10;
+    return { total: total, blocks: blocks, fee: fee2, disc: total - fee2 };
+  }
+
+  function state() {
+    var ids = ["transit","kei","low","diesel","ev","disabled","sang","agent","indep","may18","multi","single","family","bohun","preg","cham","taxfree","cap"];
+    var s = {};
+    ids.forEach(function (id) { s[id] = $(id).checked; });
+    s.low3 = $("lt3").checked;
+    return s;
+  }
+
+  function candG(s) {
+    var lowOk = s.low && !s.diesel, c = [];
+    if (s.taxfree) c.push({ name: "유공·모범납세자 무료주차", free: 0, pct: 100 });
+    if (s.transit && s.kei) c.push({ name: "경차 환승", free: 180, pct: 80 });
+    if (s.transit && lowOk) c.push({ name: "저공해 환승", free: 180, pct: 80 });
+    if (s.disabled) c.push({ name: "장애인", free: 180, pct: 80 });
+    if (s.sang) c.push({ name: "국가유공상이자", free: 180, pct: 80 });
+    if (s.agent) c.push({ name: "고엽제후유(의)증환자", free: 180, pct: 80 });
+    if (s.indep) c.push({ name: "독립유공자, 의상자", free: 180, pct: 80 });
+    if (s.may18) c.push({ name: "5.18민주유공자", free: 60, pct: 50 });
+    if (s.ev) c.push({ name: "전기차 충전 시", free: 60, pct: 50 });
+    if (s.transit) c.push({ name: "환승(버스·지하철 이용)", free: 0, pct: 50 });
+    if (lowOk) c.push({ name: "저공해자동차", free: 0, pct: 50 });
+    if (s.kei) c.push({ name: "경형자동차", free: 0, pct: 50 });
+    if (s.multi) c.push({ name: "다둥이행복카드", free: 0, pct: 50 });
+    if (s.single) c.push({ name: "한부모가족 지원대상자", free: 0, pct: 50 });
+    if (s.family) c.push({ name: "독립유공자 유족", free: 0, pct: 50 });
+    if (s.bohun) c.push({ name: "보훈보상대상자", free: 0, pct: 50 });
+    if (s.preg) c.push({ name: "임산부 탑승 차량", free: 0, pct: 50 });
+    if (s.cham) c.push({ name: "참전유공자·병역명문가", free: 0, pct: 20 });
+    c.push({ name: "할인 없음", free: 0, pct: 0 });
+    return c;
+  }
+
+  function candA(s) {
+    var lowOk = s.low && !s.diesel, c = [];
+    if (s.kei) c.push({ name: "경차", pct: 50 });
+    if (lowOk) c.push(s.low3 ? { name: "저공해자동차 3종", pct: 20 } : { name: "저공해자동차 " + ($("lt2").checked ? "2" : "1") + "종", pct: 50 });
+    if (s.disabled) c.push({ name: "장애인 등록차량", pct: 50 });
+    if (s.sang) c.push({ name: "상이등급 국가유공자", pct: 50 });
+    if (s.agent) c.push({ name: "고엽제후유증환자(장애등급)", pct: 50 });
+    if (s.may18) c.push({ name: "5.18민주유공자(장애등급)", pct: 50 });
+    if (s.multi) c.push({ name: "다자녀 가정", pct: 50 });
+    c.push({ name: "할인 없음", pct: 0 });
+    return c;
+  }
+
+  function cmpList(list, desc) {
+    var sorted = list.slice().sort(function (a, b) { return a.fee - b.fee; });
+    var best = sorted[0], html = "";
+    sorted.forEach(function (c) {
+      var isBest = c === best;
+      html += '<li class="' + (isBest ? "best" : "") + '"><span class="n">' + c.name +
+        (isBest && sorted.length > 1 ? '<span class="badge">적용</span>' : "") +
+        "<small>" + desc(c) + '</small></span><span class="v">' + won(c.fee) + "원</span></li>";
+    });
+    return html;
+  }
+
+  /* 열차 시간표 조회 */
+  function ttFor(d) {
+    var g = d.getDay();
+    if (HOL[ymd(d)] || g === 0 || g === 6) return TT_HOL;
+    return d.getTime() >= NEW_FROM ? TT_WK_NEW : TT_WK_OLD;
+  }
+  function latestTrain(needed) {
+    var d0 = new Date(needed.getFullYear(), needed.getMonth(), needed.getDate());
+    var prev = new Date(d0.getTime() - DAY * 60000);
+    var a = ttFor(d0);
+    if (a === null) return { unknown: true };
+    var cands = a.map(function (m) { return d0.getTime() + m * 60000; });
+    var b = ttFor(prev);
+    if (b) b.forEach(function (m) { if (m >= 1440) cands.push(prev.getTime() + m * 60000); });
+    cands.sort(function (x, y) { return x - y; });
+    var best = null, next = null, n = needed.getTime();
+    for (var i = 0; i < cands.length; i++) {
+      if (cands[i] <= n) best = cands[i];
+      else { next = cands[i]; break; }
+    }
+    return { best: best === null ? null : new Date(best), next: next === null ? null : new Date(next) };
+  }
+
+  function plan(dep, minBefore, P) {
+    var needArrive = dep.getTime() - minBefore * 60000;
+    var needTrain = needArrive - (P.walk + P.ride) * 60000;
+    var tr = latestTrain(new Date(needTrain));
+    var train, generic = false, next = null;
+    if (tr.unknown) { train = new Date(needTrain); generic = true; }
+    else if (!tr.best) return { none: true, next: tr.next };
+    else { train = tr.best; next = tr.next; }
+    var alight = new Date(train.getTime() + P.ride * 60000);
+    var arrive = new Date(alight.getTime() + P.walk * 60000);
+    var gate = new Date(arrive.getTime() + (P.B + P.sec + P.gate) * 60000);
+    var plat = new Date(train.getTime() - P.buf * 60000);
+    var park = new Date(plat.getTime() - P.pwalk * 60000);
+    return { train: train, alight: alight, arrive: arrive, gate: gate, plat: plat, park: park, next: next, generic: generic };
+  }
+
+  function applyAirline() {
+    var tag = $("ruleTag");
+    var v = $("fno").value.toUpperCase().replace(/\s+/g, "");
+    var m = /^([A-Z0-9]{2})-?(\d{1,4})$/.exec(v);
+    if (!v) { tag.hidden = true; return; }
+    tag.hidden = false;
+    if (!m || !AIR[m[1]]) {
+      tag.textContent = "항공사를 인식하지 못해 일반값(위탁 30분 전 마감, 탑승 20분 전 시작, 10분 전 마감)으로 계산해요.";
+      return;
+    }
+    var a = AIR[m[1]];
+    $("fkc").value = a.kc; $("fec").value = a.ec; $("fbs").value = a.bs; $("fbc").value = a.bc;
+    tag.textContent = a.ok
+      ? a.name + " 규정을 적용했어요. 위탁 " + a.kc + "분 전 마감, 출발장 입장 " + a.ec + "분 전 마감, 탑승 " + a.bs + "분 전 시작, " + a.bc + "분 전 마감이에요."
+      : a.name + "는 규정을 확인하지 못해 일반값(위탁 30분 전 마감, 탑승 20분 전 시작, 10분 전 마감)으로 계산해요.";
+  }
+
+  function renderSchedule(tin, tinValid) {
+    var dep = new Date($("fdep").value);
+    var rows = $("schedRows"), st = $("schedStatus"), tw = $("trainWarn"), btn = $("applyBtn");
+    if (isNaN(dep)) {
+      rows.innerHTML = '<tr><td colspan="3">항공기 출발 일시를 입력해 주세요.</td></tr>';
+      st.hidden = true; tw.hidden = true; btn.hidden = true;
+      return;
+    }
+    btn.hidden = false;
+    var hasBag = $("bag").checked;
+    var P = {
+      sec: num("fsec", 20), gate: num("fgate", 5), walk: num("fwalk", 10), ride: num("fride", 5),
+      buf: num("fbuf", 3), pwalk: num("fpwalk", 5), B: hasBag ? num("fbag", 15) : 0
+    };
+    var kc = num("fkc", 30), ec = num("fec", 30), bs = num("fbs", 20), bc = num("fbc", 10);
+    var recMin = P.B + bs + P.gate + P.sec;
+    var limMin = P.B + Math.max(hasBag ? kc : 0, ec, bc + P.gate + P.sec);
+    var rec = plan(dep, recMin, P), lim = plan(dep, limMin, P);
+
+    function tl(d) { return (ymd(d) === ymd(dep) ? "" : md(d) + " ") + hm(d); }
+    function val(p, f) {
+      if (p.none) return "불가";
+      return tl(p[f]);
+    }
+    function trainCell(p) {
+      if (p.none) return "불가";
+      return tl(p.train) + (p.next ? '<span class="mini">다음 ' + tl(p.next) + "</span>" : (p.generic ? '<span class="mini">시간표 미확인</span>' : ""));
+    }
+    var html = "";
+    html += '<tr class="key"><td>개화역 주차 완료<span class="mini">늦어도</span></td><td>' + val(rec, "park") + "</td><td>" + val(lim, "park") + "</td></tr>";
+    html += "<tr><td>개화역 승강장 도착</td><td>" + val(rec, "plat") + "</td><td>" + val(lim, "plat") + "</td></tr>";
+    html += '<tr class="key"><td>9호선 열차 출발<span class="mini">개화역 시간표</span></td><td>' + trainCell(rec) + "</td><td>" + trainCell(lim) + "</td></tr>";
+    html += "<tr><td>김포공항역 하차</td><td>" + val(rec, "alight") + "</td><td>" + val(lim, "alight") + "</td></tr>";
+    html += "<tr><td>국내선 청사 도착</td><td>" + val(rec, "arrive") + "</td><td>" + val(lim, "arrive") + "</td></tr>";
+    html += "<tr><td>탑승구 도착<span class=\"mini\">" + (hasBag ? "위탁·" : "") + "보안검색 후</span></td><td>" + val(rec, "gate") + "</td><td>" + val(lim, "gate") + "</td></tr>";
+    html += "<tr><td>항공기 출발</td><td>" + tl(dep) + "</td><td>" + tl(dep) + "</td></tr>";
+    rows.innerHTML = html;
+
+    // 입력한 입차 시간과 비교
+    st.hidden = true;
+    if (rec.none && lim.none) {
+      st.hidden = false; st.className = "status bad";
+      st.textContent = "이 항공편에 맞는 개화역 열차가 없어요. 개화역 첫차는 05:30이라서 더 이른 시각에 열차를 타야 하는 일정이에요. 공항 직접 주차나 다른 교통수단을 고려하세요.";
+    } else if (rec.none) {
+      st.hidden = false; st.className = "status warn";
+      st.textContent = "권장 일정에 맞는 열차는 첫차보다 일러요. 마감 한계 일정으로만 탈 수 있어서 보안검색 여유가 거의 없어요.";
+    } else if (tinValid) {
+      var diff = Math.round((rec.park.getTime() - tin.getTime()) / 60000);
+      var diffT = lim.none ? -999999 : Math.round((lim.park.getTime() - tin.getTime()) / 60000);
+      st.hidden = false;
+      if (diff >= 0) {
+        st.className = "status ok";
+        st.textContent = "입력한 입차 시간은 권장 주차 완료 시각보다 " + (diff ? fmtDur(diff) + " 일러요." : "같아요.");
+      } else if (diffT >= 0) {
+        st.className = "status warn";
+        st.textContent = "입력한 입차 시간이 권장 시각보다 " + fmtDur(-diff) + " 늦어요. 마감 한계까지는 " + fmtDur(diffT) + " 남아 여유가 거의 없어요.";
+      } else {
+        st.className = "status bad";
+        st.textContent = "입력한 입차 시간이 마감 한계를 넘어서 수속이나 탑승을 놓칠 수 있어요.";
+      }
+    }
+
+    // 시간표 관련 안내
+    var msg = "";
+    var ref = rec.none ? lim : rec;
+    if (ref && !ref.none) {
+      if (ref.generic) {
+        msg = "열차 시간표를 찾지 못해 도보·대기 여유로만 계산했어요.";
+      }
+    }
+    tw.hidden = !msg;
+    tw.textContent = msg;
+
+    btn.onclick = function () {
+      var target = rec.none ? lim : rec;
+      if (target.none) return;
+      $("tin").value = toInput(target.park);
+      enforceExit();
+      render();
+    };
+  }
+
+  /* 출차는 입차 이후만 */
+  var lastDur = 63 * 60;
+  function enforceExit() {
+    var tin = new Date($("tin").value), tout = new Date($("tout").value);
+    if (isNaN(tin)) return;
+    $("tout").min = $("tin").value;
+    if (isNaN(tout) || tout <= tin) {
+      var fixed = new Date(tin.getTime() + (lastDur > 0 ? lastDur : 60) * 60000);
+      $("tout").value = toInput(fixed);
+      $("fixNote").hidden = false;
+    } else {
+      lastDur = Math.round((tout - tin) / 60000);
+      $("fixNote").hidden = true;
+    }
+  }
+
+  function render() {
+    var s = state();
+    $("diesel").disabled = !s.low;
+    $("lt1").disabled = !s.low; $("lt2").disabled = !s.low; $("lt3").disabled = !s.low;
+    if (!s.low && $("diesel").checked) { $("diesel").checked = false; s.diesel = false; }
+
+    var a = cnt("nAdult"), t = cnt("nTeen"), c = cnt("nChild");
+    var perWay = a * FARE.adult + t * FARE.teen + c * FARE.child;
+    var trips = $("round").checked ? 2 : 1;
+    var subway = perWay * trips;
+    var who = [];
+    if (a) who.push("성인 " + a + "명");
+    if (t) who.push("청소년 " + t + "명");
+    if (c) who.push("어린이 " + c + "명");
+    var whoText = who.length ? who.join(", ") + (trips === 2 ? ", 왕복" : ", 편도") : "인원 없음";
+    $("subLine").innerHTML = "지하철 요금 <b>" + won(subway) + "원</b> (" + whoText + ")";
+    $("gWho").textContent = who.length ? who.join(", ") : "없음";
+    var extras = ["kei","ev","disabled","sang","agent","may18","multi","indep","single","family","bohun","preg","cham","taxfree"];
+    var en = extras.filter(function (id) { return $(id).checked; }).length;
+    $("extraCount").textContent = en ? "선택 " + en + "개" : "선택 없음";
+
+    var tin = new Date($("tin").value), tout = new Date($("tout").value);
+    var valid = !isNaN(tin) && !isNaN(tout) && tout > tin;
+    var err = $("err");
+
+    renderSchedule(tin, valid);
+
+    if (!valid) {
+      err.hidden = false;
+      err.textContent = (isNaN(tin) || isNaN(tout)) ? "입차·출차 시간을 모두 입력해 주세요." : "출차 시간이 입차 시간보다 늦어야 해요.";
+      $("dur").textContent = "";
+      ["gAmt", "aAmt"].forEach(function (id) { $(id).textContent = "-"; });
+      ["gSub", "aSub", "gTag", "aTag", "verdict"].forEach(function (id) { $(id).textContent = ""; });
+      ["gTotal", "gGross", "aGross"].forEach(function (id) { $(id).textContent = "-"; });
+      $("hint").hidden = true; $("hipass").hidden = true;
+      $("cellG").className = "cell"; $("cellA").className = "cell";
+      $("fxGv").textContent = "-"; $("fxAv").textContent = "-";
+      $("fxG").className = "fx"; $("fxA").className = "fx";
+      $("fxNote").textContent = "시간을 확인해 주세요";
+      $("cmpG").innerHTML = ""; $("cmpA").innerHTML = "";
+      $("rowsG").innerHTML = ""; $("rowsA").innerHTML = "";
+      return;
+    }
+    err.hidden = true;
+
+    var total = Math.round((tout - tin) / 60000);
+    $("dur").innerHTML = "총 주차시간 <b>" + fmtDur(total) + "</b>";
+    $("gTotal").textContent = fmtDur(total);
+
+    var gl = candG(s).map(function (x) { var r = evalG(total, x.free, x.pct, s.cap); x.r = r; x.fee = r.fee; return x; });
+    var gBest = gl[0];
+    gl.forEach(function (x) { if (x.fee < gBest.fee) gBest = x; });
+    var gr = gBest.r;
+    var gTot = gr.fee + subway;
+
+    var al = candA(s).map(function (x) { var r = evalA(tin, total, x.pct); x.r = r; x.fee = r.fee; return x; });
+    var aBest = al[0];
+    al.forEach(function (x) { if (x.fee < aBest.fee) aBest = x; });
+    var ar = aBest.r;
+    var aTot = ar.fee;
+
+    $("gAmt").textContent = won(gTot);
+    $("aAmt").textContent = won(aTot);
+    $("gSub").textContent = "주차 " + won(gr.fee) + "원 + 지하철 " + won(subway) + "원";
+    $("aSub").textContent = ar.disc ? "정상 " + won(ar.total) + "원에서 " + won(ar.disc) + "원 할인" : "정상 요금 그대로";
+    $("gTag").textContent = gBest.pct === 0 ? "개화역 할인 없음" : gBest.name + ", " + describe(gBest);
+    $("aTag").textContent = aBest.pct === 0 ? "공항 할인 없음" : aBest.name + " " + aBest.pct + "% 할인";
+    $("gGross").textContent = won(gr.g.total) + "원";
+    $("aGross").textContent = won(ar.total) + "원";
+
+    var diff = aTot - gTot;
+    var gWin = diff > 0, aWin = diff < 0;
+    $("cellG").className = "cell" + (gWin ? " win" : "");
+    $("cellA").className = "cell" + (aWin ? " win" : "");
+    $("fxG").className = "fx" + (gWin ? " win" : "");
+    $("fxA").className = "fx" + (aWin ? " win" : "");
+    $("fxGv").textContent = won(gTot) + "원";
+    $("fxAv").textContent = won(aTot) + "원";
+    if (diff === 0) {
+      $("verdict").textContent = "두 방법의 비용이 같아요";
+      $("fxNote").textContent = "비용이 같아요";
+    } else if (gWin) {
+      $("verdict").innerHTML = "개화역에 주차하고 지하철을 타면 <b>" + won(diff) + "원</b> 더 저렴해요";
+      $("fxNote").textContent = "개화역 쪽이 " + won(diff) + "원 저렴해요";
+    } else {
+      $("verdict").innerHTML = "김포공항에 바로 주차하면 <b>" + won(-diff) + "원</b> 더 저렴해요";
+      $("fxNote").textContent = "공항 쪽이 " + won(-diff) + "원 저렴해요";
+    }
+
+    var lowOk = s.low && !s.diesel, msg = "";
+    if (s.low && s.diesel) msg = "경유차는 저공해 감면이 적용되지 않아요.";
+    else if ((s.kei || lowOk) && !s.transit) msg = "교통카드로 지하철을 이용했다고 체크하면 개화역에서 3시간 무료 후 80% 할인이 적용돼요.";
+    $("hint").hidden = !msg; $("hint").textContent = msg;
+
+    var hp = $("hipass");
+    if (ar.total >= 50000) {
+      hp.hidden = false;
+      hp.textContent = aTot >= 50000
+        ? "김포공항은 결제 금액이 5만원 이상이라 하이패스를 쓸 수 없어요."
+        : "김포공항 정상 요금은 5만원이 넘지만 할인 후 5만원 미만이라 하이패스 결제가 가능해요.";
+    } else {
+      hp.hidden = true;
+    }
+
+    $("cmpG").innerHTML = cmpList(gl, describe);
+    $("cmpA").innerHTML = cmpList(al, function (x) { return x.pct === 0 ? "할인 없음" : x.pct + "% 할인"; });
+
+    var rg = "";
+    var freeUsed = Math.min(total, gBest.free);
+    rg += "<tr><td>총 주차시간</td><td>" + fmtDur(total) + "</td></tr>";
+    rg += "<tr><td>무료 시간</td><td>" + (freeUsed ? fmtDur(freeUsed) : "없음") + "</td></tr>";
+    rg += "<tr><td>요금 부과 시간</td><td>" + fmtDur(gr.charge) + "</td></tr>";
+    gr.g.blocks.forEach(function (b, i) {
+      rg += "<tr><td>" + (i + 1) + "구간, " + fmtDur(b.m) + (b.capped ? '<br><span class="cap">1일 상한 20,800원 적용</span>' : "") + "</td><td>" + won(b.fee) + "원</td></tr>";
+    });
+    rg += "<tr><td>정상 요금 합계</td><td>" + won(gr.g.total) + "원</td></tr>";
+    rg += "<tr><td>할인 (" + describe(gBest) + ")</td><td>-" + won(gr.disc) + "원</td></tr>";
+    rg += "<tr><td>주차 요금</td><td>" + won(gr.fee) + "원</td></tr>";
+    rg += "<tr><td>지하철 (" + whoText + ")</td><td>" + won(subway) + "원</td></tr>";
+    rg += '<tr class="total"><td>합계</td><td>' + won(gTot) + "원</td></tr>";
+    $("rowsG").innerHTML = rg;
+
+    var ra = "";
+    ra += "<tr><td>총 주차시간</td><td>" + fmtDur(total) + "</td></tr>";
+    ar.blocks.forEach(function (b, i) {
+      ra += "<tr><td>" + (i + 1) + "구간, " + md(b.start) + " " + hm(b.start) + "부터 " + fmtDur(b.m) +
+        '<span class="mini">' + b.t.label + " 요금표, 24시간 상한 " + won(b.t.cap) + "원" + (b.capped ? ' <span class="cap">상한 적용</span>' : "") + "</span></td><td>" + won(b.fee) + "원</td></tr>";
+    });
+    ra += "<tr><td>정상 요금 합계</td><td>" + won(ar.total) + "원</td></tr>";
+    ra += "<tr><td>할인 (" + (aBest.pct === 0 ? "없음" : aBest.name + " " + aBest.pct + "%") + ")</td><td>-" + won(ar.disc) + "원</td></tr>";
+    ra += '<tr class="total"><td>합계</td><td>' + won(aTot) + "원</td></tr>";
+    $("rowsA").innerHTML = ra;
+  }
+
+  // 기본값: 입차는 현재 시각, 출차는 입차 뒤
+  (function init() {
+    var now = new Date();
+    now.setSeconds(0, 0);
+    now.setMinutes(Math.ceil(now.getMinutes() / 5) * 5);
+    $("tin").value = toInput(now);
+    $("tout").value = toInput(new Date(now.getTime() + lastDur * 60000));
+    $("tout").min = $("tin").value;
+    $("fdep").value = toInput(new Date(now.getTime() + 3 * 3600000));
+  })();
+
+  document.querySelectorAll(".st-btn").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var o = $(b.getAttribute("data-t"));
+      var v = (parseInt(o.textContent, 10) || 0) + parseInt(b.getAttribute("data-d"), 10);
+      o.textContent = Math.max(0, Math.min(9, v));
+      render();
+    });
+  });
+
+  document.querySelectorAll("input, select").forEach(function (el) {
+    el.addEventListener("input", render);
+    el.addEventListener("change", render);
+  });
+  $("tin").addEventListener("change", function () { enforceExit(); render(); });
+  $("tout").addEventListener("change", function () { enforceExit(); render(); });
+  $("fno").addEventListener("input", function () { applyAirline(); render(); });
+  render();
+})();
+</script>
+</body>
+</html>
