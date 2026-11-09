@@ -239,6 +239,16 @@
     .col-r { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; padding: 2px; }
     .topbar { display: none; }
   }
+  .tcells { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tcell { background: var(--bg); border: 2px solid transparent; border-radius: 12px; padding: 12px; min-width: 0; }
+  .tcell.win { background: var(--ok-soft); border-color: var(--ok); }
+  .tcell .c-title { color: var(--muted); }
+  .tcell .c-sub { color: var(--muted); }
+  .t-big { margin-top: 4px; font-size: clamp(26px, 7vw, 34px); font-weight: 900; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .t-big small { font-size: 0.45em; font-weight: 700; margin-left: 2px; }
+  .tcell.win .t-big { color: var(--ok); }
+  .tverdict { margin: 12px 0 0; font-size: 15.5px; font-weight: 700; line-height: 1.45; }
+  .tverdict2 { margin: 4px 0 0; font-size: 13.5px; color: var(--muted); line-height: 1.5; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -382,6 +392,10 @@
         <input type="checkbox" id="bag">
         <span class="t">위탁수하물이 있어요<span class="d">카운터 수속 시간이 더해지고 위탁 마감 시각을 지켜야 해요</span></span>
       </label>
+      <div class="grid2">
+        <div class="field"><label for="fdg">집 → 개화역 운전(분)</label><input type="number" id="fdg" inputmode="numeric" min="0" max="300" placeholder="선택"></div>
+        <div class="field"><label for="fda">집 → 공항 운전(분)</label><input type="number" id="fda" inputmode="numeric" min="0" max="300" placeholder="선택"></div>
+      </div>
       <details class="inner">
         <summary>세부 시간 조정</summary>
         <p class="lead" style="margin-top:0">모두 추정값이에요. 직접 걸어본 시간이나 평소 대기 시간으로 바꿔 쓰세요.</p>
@@ -397,6 +411,9 @@
           <div class="field"><label for="fec">출발장 입장 마감(분 전)</label><input type="number" id="fec" inputmode="numeric" min="0" max="90" value="30"></div>
           <div class="field"><label for="fbs">탑승 시작(분 전)</label><input type="number" id="fbs" inputmode="numeric" min="0" max="90" value="20"></div>
           <div class="field"><label for="fbc">탑승 마감(분 전)</label><input type="number" id="fbc" inputmode="numeric" min="0" max="60" value="10"></div>
+          <div class="field"><label for="fpkg">개화역 진입·주차(분)</label><input type="number" id="fpkg" inputmode="numeric" min="0" max="60" value="5"></div>
+          <div class="field"><label for="fpka">공항 주차장 진입·대기·주차(분)</label><input type="number" id="fpka" inputmode="numeric" min="0" max="90" value="10"></div>
+          <div class="field"><label for="fwka">공항 주차장 → 청사 도보(분)</label><input type="number" id="fwka" inputmode="numeric" min="0" max="30" value="5"></div>
         </div>
       </details>
     </div>
@@ -424,6 +441,7 @@
       <p><b>요금 기준</b> 개화역은 서울시설공단 안내문, 공항은 국내선 소형 요금표예요(국제선도 같아요). 공항은 24시간 구간 시작일의 요일로 계산하고, 상한은 월~목 20,000원, 금·토·일·공휴일 30,000원이에요. 공휴일은 2026~2027년 월력요항 기준이고 임시공휴일은 빠져 있어요.</p>
       <p><b>감면</b> 여러 개가 해당하면 가장 유리한 하나만 적용해요. 증빙서류가 필요하고, 공항은 출차 후 30일 안에 사후할인을 신청할 수 있어요. 공항은 5만원 이상이면 하이패스를 못 쓰고, 할인 후 5만원 미만이면 쓸 수 있어요.</p>
       <p><b>시간 계산</b> 열차는 알려주신 개화역 시간표 기준이에요(평일은 11/16부터 변경 시간표). 항공사 규정은 대한항공·아시아나·제주항공·티웨이만 반영했고, 보안검색·도보·열차 시간은 추정값이에요.</p>
+      <p><b>소요 시간</b> 공항 주차장 진입·대기·주차 10분과 도보 5분, 개화역 진입·주차 5분은 추정값이에요. 성수기에는 공항 국내선 주차장이 만차라 입구에서 20분 가까이 기다린 사례가 있고, 국내선 제2주차장은 예약(2시간~30일)할 수 있어요.</p>
       <p><b>지하철</b> 하차할 때 교통카드를 태그하지 않으면 다음 승차 때 기본운임이 더 나가요. 어린이·청소년 요금은 해당 연령으로 등록한 카드만 적용돼요.</p>
       <p>실제 정산은 다를 수 있어요. 문의는 개화역 02-2290-6449, 공항은 주차장 안내처로 하세요.</p>
     </div>
@@ -455,6 +473,31 @@
       <div><dt>개화역 정상 요금</dt><dd id="gGross">-</dd></div>
       <div><dt>김포공항 정상 요금</dt><dd id="aGross">-</dd></div>
     </dl>
+  </section>
+
+  <section class="card o4">
+    <h2>소요 시간 비교</h2>
+    <p class="lead" style="margin-top:-4px">주차장에 들어간 순간부터 국내선 청사에 도착할 때까지예요.</p>
+    <div class="tcells">
+      <div class="tcell" id="tcG">
+        <div class="c-title">개화역 주차와 지하철</div>
+        <div class="t-big"><span id="tgMin">0</span><small>분</small></div>
+        <div class="c-sub" id="tgSub"></div>
+      </div>
+      <div class="tcell" id="tcA">
+        <div class="c-title">김포공항 직접 주차</div>
+        <div class="t-big"><span id="taMin">0</span><small>분</small></div>
+        <div class="c-sub" id="taSub"></div>
+      </div>
+    </div>
+    <p class="tverdict" id="tVerdict"></p>
+    <p class="tverdict2" id="tVerdict2"></p>
+    <div class="tbl-wrap">
+      <table class="tbl3">
+        <thead><tr><th>단계</th><th>개화역</th><th>공항</th></tr></thead>
+        <tbody id="timeRows"></tbody>
+      </table>
+    </div>
   </section>
 
   <section class="card o4">
@@ -730,12 +773,15 @@
       : a.name + "는 규정을 확인하지 못해 일반값(위탁 30분 전 마감, 탑승 20분 전 시작, 10분 전 마감)으로 계산해요.";
   }
 
+  var lastSched = null;
+
   function renderSchedule(tin, tinValid) {
     var dep = new Date(getDT("fdep"));
     var rows = $("schedRows"), st = $("schedStatus"), tw = $("trainWarn"), btn = $("applyBtn");
     if (isNaN(dep)) {
       rows.innerHTML = '<tr><td colspan="3">항공기 출발 일시를 입력해 주세요.</td></tr>';
       st.hidden = true; tw.hidden = true; btn.hidden = true;
+      lastSched = null;
       return;
     }
     btn.hidden = false;
@@ -748,6 +794,7 @@
     var recMin = P.B + bs + P.gate + P.sec;
     var limMin = P.B + Math.max(hasBag ? kc : 0, ec, bc + P.gate + P.sec);
     var rec = plan(dep, recMin, P), lim = plan(dep, limMin, P);
+    lastSched = { dep: dep, rec: rec, recMin: recMin };
 
     function tl(d) { return (ymd(d) === ymd(dep) ? "" : md(d) + " ") + hm(d); }
     function val(p, f) {
@@ -828,6 +875,66 @@
     }
   }
 
+  /* 소요 시간 비교 */
+  function renderTime() {
+    var pg = num("fpkg", 5), pa = num("fpka", 10), wa = num("fwka", 5);
+    var pw = num("fpwalk", 5), bf = num("fbuf", 3), rd = num("fride", 5), wk = num("fwalk", 10);
+    var tg = pg + pw + bf + rd + wk, ta = pa + wa;
+    var dgv = parseInt($("fdg").value, 10), dav = parseInt($("fda").value, 10);
+    var hasG = !isNaN(dgv) && dgv >= 0, hasA = !isNaN(dav) && dav >= 0;
+    $("tgMin").textContent = tg;
+    $("taMin").textContent = ta;
+    $("tgSub").textContent = "진입·주차 " + pg + " + 승강장까지 " + pw + " + 대기 " + bf + " + 열차 " + rd + " + 도보 " + wk;
+    $("taSub").textContent = "진입·대기·주차 " + pa + " + 청사까지 도보 " + wa;
+    var d = tg - ta;
+    $("tcG").className = "tcell" + (d < 0 ? " win" : "");
+    $("tcA").className = "tcell" + (d > 0 ? " win" : "");
+    $("tVerdict").textContent = d > 0 ? "공항에 바로 주차하면 " + d + "분 더 빨라요"
+      : d < 0 ? "개화역 쪽이 " + (-d) + "분 더 빨라요" : "두 방법의 소요 시간이 같아요";
+
+    var ls = lastSched, clockG = null, clockA = null, miss = null;
+    if (ls) {
+      if (!ls.rec.none) {
+        clockG = new Date(ls.rec.park.getTime() - pg * 60000);
+        if (ls.rec.next) miss = Math.round((ls.rec.next.getTime() - ls.rec.train.getTime()) / 60000);
+      }
+      clockA = new Date(ls.dep.getTime() - (ls.recMin + wa + pa) * 60000);
+    }
+    function tl(x) { return (ymd(x) === ymd(ls.dep) ? "" : md(x) + " ") + hm(x); }
+    function mins(n) { return n + "분"; }
+    var rows = "";
+    rows += "<tr><td>주차장 진입·주차</td><td>" + mins(pg) + "</td><td>" + mins(pa) + "</td></tr>";
+    rows += "<tr><td>주차장에서 승강장·청사까지 도보</td><td>" + mins(pw) + "</td><td>" + mins(wa) + "</td></tr>";
+    rows += "<tr><td>승강장 대기</td><td>" + mins(bf) + "</td><td>-</td></tr>";
+    rows += "<tr><td>9호선 열차</td><td>" + mins(rd) + "</td><td>-</td></tr>";
+    rows += "<tr><td>김포공항역에서 청사까지 도보</td><td>" + mins(wk) + "</td><td>-</td></tr>";
+    rows += '<tr class="total"><td>합계</td><td>' + mins(tg) + "</td><td>" + mins(ta) + "</td></tr>";
+    if (miss !== null) rows += "<tr><td>열차를 놓치면<span class=\"mini\">다음 열차까지</span></td><td>+" + mins(miss) + "</td><td>-</td></tr>";
+    if (ls) {
+      rows += '<tr class="key"><td>주차장 도착<span class="mini">늦어도</span></td><td>' + (clockG ? tl(clockG) : "불가") + "</td><td>" + tl(clockA) + "</td></tr>";
+      var hg = clockG && hasG ? tl(new Date(clockG.getTime() - dgv * 60000)) : (clockG ? "운전 시간 입력" : "불가");
+      var ha = hasA ? tl(new Date(clockA.getTime() - dav * 60000)) : "운전 시간 입력";
+      rows += '<tr class="key"><td>집 출발<span class="mini">늦어도</span></td><td>' + hg + "</td><td>" + ha + "</td></tr>";
+    } else {
+      rows += '<tr><td>주차장 도착·집 출발</td><td colspan="2" style="text-align:right">출발 일시를 입력하면 계산해요</td></tr>';
+    }
+    $("timeRows").innerHTML = rows;
+
+    var v2 = "";
+    if (clockG && clockA) {
+      if (hasG && hasA) {
+        var hm2 = Math.round(((clockA.getTime() - dav * 60000) - (clockG.getTime() - dgv * 60000)) / 60000);
+        v2 = hm2 > 0 ? "집에서는 공항 쪽이 " + hm2 + "분 늦게 출발해도 돼요."
+          : hm2 < 0 ? "집에서는 개화역 쪽이 " + (-hm2) + "분 늦게 출발해도 돼요." : "집에서 출발해야 하는 시각이 같아요.";
+      } else {
+        var am = Math.round((clockA.getTime() - clockG.getTime()) / 60000);
+        v2 = (am > 0 ? "공항 주차장에는 " + am + "분 늦게" : am < 0 ? "개화역 주차장에는 " + (-am) + "분 늦게" : "두 주차장에 같은 시각에") +
+          " 도착해도 돼요. 집에서 각 주차장까지 운전 시간을 넣으면 집 출발 시각도 비교해요.";
+      }
+    }
+    $("tVerdict2").textContent = v2;
+  }
+
   function render() {
     ["tin", "tout", "fdep"].forEach(updAP);
     var s = state();
@@ -855,6 +962,7 @@
     var err = $("err");
 
     renderSchedule(tin, valid);
+    renderTime();
 
     if (!valid) {
       err.hidden = false;
