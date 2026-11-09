@@ -123,12 +123,12 @@
   .times { display: grid; gap: 12px; }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .field label { display: block; font-size: 13.5px; color: var(--muted); margin-bottom: 4px; }
-  input[type="datetime-local"], input[type="number"], input[type="text"], select {
+  input[type="date"], input[type="number"], input[type="text"], select {
     width: 100%; min-height: 48px; padding: 10px 12px;
     font: inherit; font-size: 16px; color: var(--ink);
     background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
   }
-  input[type="datetime-local"]:focus-visible, input[type="number"]:focus-visible, input[type="text"]:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+  input[type="date"]:focus-visible, input[type="number"]:focus-visible, input[type="text"]:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
   .dur { margin: 12px 0 0; font-size: 14px; color: var(--muted); }
   .dur b { color: var(--ink); }
   .err { margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: var(--warn-soft); color: var(--warn); font-size: 14px; font-weight: 500; }
@@ -144,9 +144,15 @@
   .opt .d { display: block; font-size: 12.5px; color: var(--muted); font-weight: 400; margin-top: 1px; }
   .opt.sub { margin-left: 22px; }
   .last { margin-bottom: 0; }
-  .trow { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-  .trow label { flex: none; width: 36px; font-size: 14px; color: var(--muted); }
-  .trow input { flex: 1; min-width: 0; }
+  .trow { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  .trow > label { flex: none; width: 36px; padding-top: 13px; font-size: 14px; color: var(--muted); }
+  .fields { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .fields input[type="date"] { flex: 1 1 150px; width: auto; min-width: 0; }
+  .tm { display: flex; align-items: center; gap: 4px; }
+  .tm input[type="number"] { width: 58px; padding-left: 4px; padding-right: 4px; text-align: center; -moz-appearance: textfield; appearance: textfield; }
+  .tm input[type="number"]::-webkit-inner-spin-button, .tm input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  .tm .colon { font-weight: 700; color: var(--muted); }
+  .tm .ap { min-width: 34px; margin-left: 4px; font-size: 14.5px; font-weight: 700; color: var(--accent); }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
   .mycar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
   .chip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; cursor: pointer; background: var(--surface); font-size: 14.5px; font-weight: 500; }
@@ -261,8 +267,17 @@
 
   <section class="card">
     <h2>조건</h2>
-    <div class="trow"><label for="tin">입차</label><input type="datetime-local" id="tin"></div>
-    <div class="trow"><label for="tout">출차</label><input type="datetime-local" id="tout"></div>
+    <div class="trow"><label for="tin_d">입차</label>
+      <div class="fields">
+        <input type="date" id="tin_d" aria-label="입차 날짜">
+        <div class="tm"><input type="number" id="tin_h" inputmode="numeric" min="0" max="23" placeholder="시" aria-label="입차 시(0~23)"><span class="colon">:</span><input type="number" id="tin_m" inputmode="numeric" min="0" max="59" placeholder="분" aria-label="입차 분(0~59)"><span class="ap" id="tin_ap" aria-live="polite"></span></div>
+      </div></div>
+    <div class="trow"><label for="tout_d">출차</label>
+      <div class="fields">
+        <input type="date" id="tout_d" aria-label="출차 날짜">
+        <div class="tm"><input type="number" id="tout_h" inputmode="numeric" min="0" max="23" placeholder="시" aria-label="출차 시(0~23)"><span class="colon">:</span><input type="number" id="tout_m" inputmode="numeric" min="0" max="59" placeholder="분" aria-label="출차 분(0~59)"><span class="ap" id="tout_ap" aria-live="polite"></span></div>
+      </div></div>
+    <p class="lead" style="margin:0 0 4px">시간은 24시간 형식으로 입력해요. 오후 5시 30분은 17:30이에요.</p>
     <p class="fixnote" id="fixNote" hidden>출차 시간은 입차 시간보다 뒤여야 해서 입차 시간 뒤로 맞췄어요.</p>
     <div id="err" class="err" hidden></div>
     <p class="dur" id="dur"></p>
@@ -362,16 +377,15 @@
     <h2>비행기 시간에 맞춘 입차 마감</h2>
     <p class="lead">김포공항 국내선 출발편 기준이에요. 편명은 항공사별 수속·탑승 규정을 적용하는 데 쓰고, 출발 시각은 예약 내역을 보고 직접 입력해 주세요.</p>
     <div class="times">
-      <div class="grid2">
-        <div class="field">
-          <label for="fno">편명</label>
-          <input type="text" id="fno" placeholder="예: KE1187" autocomplete="off" autocapitalize="characters" spellcheck="false">
-        </div>
-        <div class="field">
-          <label for="fdep">출발 일시</label>
-          <input type="datetime-local" id="fdep">
-        </div>
+      <div class="field">
+        <label for="fno">편명</label>
+        <input type="text" id="fno" placeholder="예: KE1187" autocomplete="off" autocapitalize="characters" spellcheck="false">
       </div>
+      <div class="trow"><label for="fdep_d">출발</label>
+      <div class="fields">
+        <input type="date" id="fdep_d" aria-label="출발 날짜">
+        <div class="tm"><input type="number" id="fdep_h" inputmode="numeric" min="0" max="23" placeholder="시" aria-label="출발 시(0~23)"><span class="colon">:</span><input type="number" id="fdep_m" inputmode="numeric" min="0" max="59" placeholder="분" aria-label="출발 분(0~59)"><span class="ap" id="fdep_ap" aria-live="polite"></span></div>
+      </div></div>
       <p class="rulebox" id="ruleTag" hidden></p>
       <label class="opt last">
         <input type="checkbox" id="bag">
@@ -510,6 +524,26 @@
     return (isNaN(v) || v < 0) ? def : v;
   }
   function cnt(id) { return parseInt($(id).textContent, 10) || 0; }
+
+  /* 24시간 날짜·시간 입력 */
+  function dtParts(id) {
+    var d = $(id + "_d").value, h = parseInt($(id + "_h").value, 10), m = parseInt($(id + "_m").value, 10);
+    if (!d || isNaN(h) || isNaN(m)) return null;
+    return { d: d, h: Math.max(0, Math.min(23, h)), m: Math.max(0, Math.min(59, m)) };
+  }
+  function getDT(id) { var p = dtParts(id); return p ? p.d + "T" + pad(p.h) + ":" + pad(p.m) : ""; }
+  function updAP(id) {
+    var p = dtParts(id);
+    $(id + "_ap").textContent = p ? (p.h < 12 ? "오전" : "오후") : "";
+  }
+  function setDT(id, v) {
+    var a = v.split("T"), t = a[1].split(":");
+    $(id + "_d").value = a[0];
+    $(id + "_h").value = pad(parseInt(t[0], 10));
+    $(id + "_m").value = t[1];
+    updAP(id);
+  }
+  function fixDT(id) { var v = getDT(id); if (v) setDT(id, v); }
 
   /* 개화역 주차 */
   function gross(chargeMin, useCap) {
@@ -672,7 +706,7 @@
   }
 
   function renderSchedule(tin, tinValid) {
-    var dep = new Date($("fdep").value);
+    var dep = new Date(getDT("fdep"));
     var rows = $("schedRows"), st = $("schedStatus"), tw = $("trainWarn"), btn = $("applyBtn");
     if (isNaN(dep)) {
       rows.innerHTML = '<tr><td colspan="3">항공기 출발 일시를 입력해 주세요.</td></tr>';
@@ -747,7 +781,7 @@
     btn.onclick = function () {
       var target = rec.none ? lim : rec;
       if (target.none) return;
-      $("tin").value = toInput(target.park);
+      setDT("tin", toInput(target.park));
       enforceExit();
       render();
     };
@@ -756,12 +790,12 @@
   /* 출차는 입차 이후만 */
   var lastDur = 63 * 60;
   function enforceExit() {
-    var tin = new Date($("tin").value), tout = new Date($("tout").value);
+    var tin = new Date(getDT("tin")), tout = new Date(getDT("tout"));
     if (isNaN(tin)) return;
-    $("tout").min = $("tin").value;
+    $("tout_d").min = getDT("tin").slice(0, 10);
     if (isNaN(tout) || tout <= tin) {
       var fixed = new Date(tin.getTime() + (lastDur > 0 ? lastDur : 60) * 60000);
-      $("tout").value = toInput(fixed);
+      setDT("tout", toInput(fixed));
       $("fixNote").hidden = false;
     } else {
       lastDur = Math.round((tout - tin) / 60000);
@@ -770,6 +804,7 @@
   }
 
   function render() {
+    ["tin", "tout", "fdep"].forEach(updAP);
     var s = state();
     $("diesel").disabled = !s.low;
     $("lt1").disabled = !s.low; $("lt2").disabled = !s.low; $("lt3").disabled = !s.low;
@@ -790,7 +825,7 @@
     var en = extras.filter(function (id) { return $(id).checked; }).length;
     $("extraCount").textContent = en ? "선택 " + en + "개" : "선택 없음";
 
-    var tin = new Date($("tin").value), tout = new Date($("tout").value);
+    var tin = new Date(getDT("tin")), tout = new Date(getDT("tout"));
     var valid = !isNaN(tin) && !isNaN(tout) && tout > tin;
     var err = $("err");
 
@@ -908,10 +943,10 @@
     var now = new Date();
     now.setSeconds(0, 0);
     now.setMinutes(Math.ceil(now.getMinutes() / 5) * 5);
-    $("tin").value = toInput(now);
-    $("tout").value = toInput(new Date(now.getTime() + lastDur * 60000));
-    $("tout").min = $("tin").value;
-    $("fdep").value = toInput(new Date(now.getTime() + 3 * 3600000));
+    setDT("tin", toInput(now));
+    setDT("tout", toInput(new Date(now.getTime() + lastDur * 60000)));
+    $("tout_d").min = getDT("tin").slice(0, 10);
+    setDT("fdep", toInput(new Date(now.getTime() + 3 * 3600000)));
   })();
 
   document.querySelectorAll(".st-btn").forEach(function (b) {
@@ -927,8 +962,14 @@
     el.addEventListener("input", render);
     el.addEventListener("change", render);
   });
-  $("tin").addEventListener("change", function () { enforceExit(); render(); });
-  $("tout").addEventListener("change", function () { enforceExit(); render(); });
+  ["tin", "tout"].forEach(function (id) {
+    ["_d", "_h", "_m"].forEach(function (sfx) {
+      $(id + sfx).addEventListener("change", function () { fixDT(id); enforceExit(); render(); });
+    });
+  });
+  ["_d", "_h", "_m"].forEach(function (sfx) {
+    $("fdep" + sfx).addEventListener("change", function () { fixDT("fdep"); render(); });
+  });
   $("fno").addEventListener("input", function () { applyAirline(); render(); });
   render();
 })();
