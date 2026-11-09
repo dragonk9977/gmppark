@@ -85,7 +85,7 @@
     font-family: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
     line-height: 1.55;
     -webkit-text-size-adjust: 100%;
-    padding-bottom: 130px;
+    padding-bottom: 32px;
   }
   .wrap { max-width: 560px; margin: 0 auto; padding: 20px 16px 8px; }
 
@@ -173,6 +173,8 @@
   .opt:has(input:checked) .scope { background: var(--surface); }
   details.inner { margin-top: 10px; }
   details.inner > summary { cursor: pointer; font-size: 14.5px; font-weight: 700; padding: 8px 0; min-height: 44px; display: flex; align-items: center; }
+  details.inner > summary::before { content: "▸"; display: inline-block; margin-right: 6px; transition: transform 0.15s; }
+  details.inner[open] > summary::before { transform: rotate(90deg); }
   details.inner > summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 
   .prow { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
@@ -217,12 +219,26 @@
   .note { margin: 18px 2px 0; font-size: 12.5px; color: var(--muted); line-height: 1.65; }
   .note p { margin: 0 0 8px; }
 
-  .fixed { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--panel); color: var(--panel-ink); padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid #2A3142; }
-  .fixed .in { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .fx .l { display: block; font-size: 12px; color: var(--panel-muted); }
   .fx .v { display: block; font-size: 24px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .fx.win .v { color: var(--led); }
   .fx-note { max-width: 560px; margin: 2px auto 0; font-size: 12.5px; color: var(--panel-muted); }
+  .topbar { position: fixed; left: 0; right: 0; top: 0; z-index: 20; background: var(--panel); color: var(--panel-ink); padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px; border-bottom: 1px solid #2A3142; transform: translateY(-110%); visibility: hidden; transition: transform 0.18s ease, visibility 0.18s; }
+  .topbar.show { transform: none; visibility: visible; }
+  .topbar .in { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* 레이아웃: 좁은 화면은 한 줄, 넓은 화면은 입력(왼쪽)과 결과(오른쪽) */
+  .layout { display: flex; flex-direction: column; }
+  .col-l, .col-r { display: contents; }
+  .o1 { order: 1; } .o2 { order: 2; } .o3 { order: 3; } .o4 { order: 4; } .o5 { order: 5; } .o6 { order: 6; } .o7 { order: 7; }
+  @media (min-width: 860px) {
+    .wrap { max-width: 1080px; padding: 24px 24px 12px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; margin-top: 16px; }
+    .col-l, .col-r { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    .col-l > *, .col-r > * { margin-top: 0; }
+    .col-r { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; padding: 2px; }
+    .topbar { display: none; }
+  }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -238,34 +254,9 @@
     </div>
   </header>
 
-  <section class="display" aria-live="polite">
-    <p class="d-head">총 비용 비교</p>
-    <div class="cells">
-      <div class="cell" id="cellG">
-        <div class="c-title">개화역 주차와 지하철</div>
-        <div class="c-amt"><span id="gAmt">0</span><small>원</small></div>
-        <div class="c-sub" id="gSub"></div>
-        <div class="c-tag" id="gTag"></div>
-      </div>
-      <div class="cell" id="cellA">
-        <div class="c-title">김포공항 직접 주차</div>
-        <div class="c-amt"><span id="aAmt">0</span><small>원</small></div>
-        <div class="c-sub" id="aSub"></div>
-        <div class="c-tag" id="aTag"></div>
-      </div>
-    </div>
-    <div class="verdict" id="verdict"></div>
-    <div class="d-hint" id="hint" hidden></div>
-    <div class="d-hint" id="hipass" hidden></div>
-    <dl class="d-grid">
-      <div><dt>총 주차시간</dt><dd id="gTotal">-</dd></div>
-      <div><dt>지하철 이용</dt><dd id="gWho">-</dd></div>
-      <div><dt>개화역 정상 요금</dt><dd id="gGross">-</dd></div>
-      <div><dt>김포공항 정상 요금</dt><dd id="aGross">-</dd></div>
-    </dl>
-  </section>
-
-  <section class="card">
+  <div class="layout">
+    <div class="col-l">
+  <section class="card o2">
     <h2>조건</h2>
     <div class="trow"><label for="tin_d">입차</label>
       <div class="fields">
@@ -373,7 +364,7 @@
     </details>
   </section>
 
-  <section class="card">
+  <section class="card o3">
     <h2>비행기 시간에 맞춘 입차 마감</h2>
     <p class="lead">김포공항 국내선 출발편 기준이에요. 편명은 항공사별 수속·탑승 규정을 적용하는 데 쓰고, 출발 시각은 예약 내역을 보고 직접 입력해 주세요.</p>
     <div class="times">
@@ -409,6 +400,65 @@
         </div>
       </details>
     </div>
+  </section>
+
+  <details class="card o5">
+    <summary>개화역 계산 내역</summary>
+    <h3>할인 비교</h3>
+    <ul class="cmp" id="cmpG"></ul>
+    <h3>적용한 계산</h3>
+    <div class="tbl-wrap"><table><tbody id="rowsG"></tbody></table></div>
+  </details>
+
+  <details class="card o6">
+    <summary>김포공항 계산 내역</summary>
+    <h3>할인 비교</h3>
+    <ul class="cmp" id="cmpA"></ul>
+    <h3>적용한 계산</h3>
+    <div class="tbl-wrap"><table><tbody id="rowsA"></tbody></table></div>
+  </details>
+
+  <details class="card o7">
+    <summary>계산 기준·유의사항</summary>
+    <div class="note" style="margin:10px 0 0">
+      <p><b>요금 기준</b> 개화역은 서울시설공단 안내문, 공항은 국내선 소형 요금표예요(국제선도 같아요). 공항은 24시간 구간 시작일의 요일로 계산하고, 상한은 월~목 20,000원, 금·토·일·공휴일 30,000원이에요. 공휴일은 2026~2027년 월력요항 기준이고 임시공휴일은 빠져 있어요.</p>
+      <p><b>감면</b> 여러 개가 해당하면 가장 유리한 하나만 적용해요. 증빙서류가 필요하고, 공항은 출차 후 30일 안에 사후할인을 신청할 수 있어요. 공항은 5만원 이상이면 하이패스를 못 쓰고, 할인 후 5만원 미만이면 쓸 수 있어요.</p>
+      <p><b>시간 계산</b> 열차는 알려주신 개화역 시간표 기준이에요(평일은 11/16부터 변경 시간표). 항공사 규정은 대한항공·아시아나·제주항공·티웨이만 반영했고, 보안검색·도보·열차 시간은 추정값이에요.</p>
+      <p><b>지하철</b> 하차할 때 교통카드를 태그하지 않으면 다음 승차 때 기본운임이 더 나가요. 어린이·청소년 요금은 해당 연령으로 등록한 카드만 적용돼요.</p>
+      <p>실제 정산은 다를 수 있어요. 문의는 개화역 02-2290-6449, 공항은 주차장 안내처로 하세요.</p>
+    </div>
+  </details>
+    </div>
+    <div class="col-r">
+  <section class="display o1" aria-live="polite">
+    <p class="d-head">총 비용 비교</p>
+    <div class="cells">
+      <div class="cell" id="cellG">
+        <div class="c-title">개화역 주차와 지하철</div>
+        <div class="c-amt"><span id="gAmt">0</span><small>원</small></div>
+        <div class="c-sub" id="gSub"></div>
+        <div class="c-tag" id="gTag"></div>
+      </div>
+      <div class="cell" id="cellA">
+        <div class="c-title">김포공항 직접 주차</div>
+        <div class="c-amt"><span id="aAmt">0</span><small>원</small></div>
+        <div class="c-sub" id="aSub"></div>
+        <div class="c-tag" id="aTag"></div>
+      </div>
+    </div>
+    <div class="verdict" id="verdict"></div>
+    <div class="d-hint" id="hint" hidden></div>
+    <div class="d-hint" id="hipass" hidden></div>
+    <dl class="d-grid">
+      <div><dt>총 주차시간</dt><dd id="gTotal">-</dd></div>
+      <div><dt>지하철 이용</dt><dd id="gWho">-</dd></div>
+      <div><dt>개화역 정상 요금</dt><dd id="gGross">-</dd></div>
+      <div><dt>김포공항 정상 요금</dt><dd id="aGross">-</dd></div>
+    </dl>
+  </section>
+
+  <section class="card o4">
+    <h2>입차 마감 시각</h2>
     <div id="schedBox">
       <div class="tbl-wrap">
         <table class="tbl3">
@@ -421,36 +471,11 @@
       <button type="button" class="btn" id="applyBtn">입차 시간을 권장 시각으로 맞추기</button>
     </div>
   </section>
-
-  <details class="card">
-    <summary>개화역 계산 내역</summary>
-    <h3>할인 비교</h3>
-    <ul class="cmp" id="cmpG"></ul>
-    <h3>적용한 계산</h3>
-    <div class="tbl-wrap"><table><tbody id="rowsG"></tbody></table></div>
-  </details>
-
-  <details class="card">
-    <summary>김포공항 계산 내역</summary>
-    <h3>할인 비교</h3>
-    <ul class="cmp" id="cmpA"></ul>
-    <h3>적용한 계산</h3>
-    <div class="tbl-wrap"><table><tbody id="rowsA"></tbody></table></div>
-  </details>
-
-  <details class="card">
-    <summary>계산 기준·유의사항</summary>
-    <div class="note" style="margin:10px 0 0">
-      <p><b>요금 기준</b> 개화역은 서울시설공단 안내문, 공항은 국내선 소형 요금표예요(국제선도 같아요). 공항은 24시간 구간 시작일의 요일로 계산하고, 상한은 월~목 20,000원, 금·토·일·공휴일 30,000원이에요. 공휴일은 2026~2027년 월력요항 기준이고 임시공휴일은 빠져 있어요.</p>
-      <p><b>감면</b> 여러 개가 해당하면 가장 유리한 하나만 적용해요. 증빙서류가 필요하고, 공항은 출차 후 30일 안에 사후할인을 신청할 수 있어요. 공항은 5만원 이상이면 하이패스를 못 쓰고, 할인 후 5만원 미만이면 쓸 수 있어요.</p>
-      <p><b>시간 계산</b> 열차는 알려주신 개화역 시간표 기준이에요(평일은 11/16부터 변경 시간표). 항공사 규정은 대한항공·아시아나·제주항공·티웨이만 반영했고, 보안검색·도보·열차 시간은 추정값이에요.</p>
-      <p><b>지하철</b> 하차할 때 교통카드를 태그하지 않으면 다음 승차 때 기본운임이 더 나가요. 어린이·청소년 요금은 해당 연령으로 등록한 카드만 적용돼요.</p>
-      <p>실제 정산은 다를 수 있어요. 문의는 개화역 02-2290-6449, 공항은 주차장 안내처로 하세요.</p>
     </div>
-  </details>
+  </div>
 </main>
 
-<div class="fixed">
+<div class="topbar" id="topbar" aria-hidden="true">
   <div class="in">
     <div class="fx" id="fxG"><span class="l">개화역 + 지하철</span><span class="v" id="fxGv">0원</span></div>
     <div class="fx" id="fxA"><span class="l">김포공항 주차</span><span class="v" id="fxAv">0원</span></div>
@@ -972,6 +997,18 @@
   });
   $("fno").addEventListener("input", function () { applyAirline(); render(); });
   render();
+
+  // 상단 비교 요약은 본문 비교가 화면 밖으로 나갔을 때만 좁은 화면에서 보여줘요
+  (function () {
+    var disp = document.querySelector(".display"), bar = $("topbar");
+    var mq = window.matchMedia ? window.matchMedia("(max-width: 859px)") : null;
+    var visible = true;
+    function sync() { bar.classList.toggle("show", !visible && !!(mq && mq.matches)); }
+    if ("IntersectionObserver" in window && disp) {
+      new IntersectionObserver(function (es) { visible = es[0].isIntersecting; sync(); }).observe(disp);
+    }
+    if (mq && mq.addEventListener) mq.addEventListener("change", sync);
+  })();
 })();
 </script>
 </body>
